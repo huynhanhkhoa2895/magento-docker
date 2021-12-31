@@ -1,0 +1,73 @@
+
+version: "3.7"
+services:
+  app:
+    tty: true
+    image: khoa-magento
+    working_dir: /var/www/pwa
+    environment:
+      - DEBUG=true
+    command: ["yarn","watch"]
+    volumes:
+      - ./magento:/var/www/magento
+    networks:
+      - mynetwork
+    links:
+      - db
+      - es01
+    ports:
+      - 80:80
+      - 443:443
+      - 3000:3000
+      - 8259:8259
+      - 9259:9259
+      # - 9200:9200
+    depends_on:
+      - db
+      - es01
+  db:
+    image: mariadb:10.4
+    container_name: db
+    volumes:
+      - dbdata:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE : magento
+      SERVICE_NAME: mysql
+    ports:
+      - 3308:3306
+    networks:
+      - mynetwork
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.2
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - cluster.initial_master_nodes=es01
+      - bootstrap.memory_lock=true
+      - transport.host=localhost
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./es01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - mynetwork
+volumes:
+  db:
+    external: true
+  app:
+    external: true
+  es01:
+    external: true
+  dbdata:
+    driver: local
+networks:
+  mynetwork:
+    driver: bridge

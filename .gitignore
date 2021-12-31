@@ -1,0 +1,6 @@
+magento/vendor
+pwa/node_modules
+magento/var/cache/
+magento/var/log/
+magento/var/page_cache/
+magento/var/tmp/
